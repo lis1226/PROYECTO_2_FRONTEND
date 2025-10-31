@@ -14,6 +14,7 @@ import Presentation.Views.login.LoginView;
 import Presentation.Views.main.MainWindow;
 import Presentation.Views.medicos.MedicosView;
 import Services.AuthService;
+import Services.FarmaceuticoService;
 import Services.MedicoService;
 import Utilities.EventType;
 
@@ -85,9 +86,15 @@ public class LoginController extends Observable {
         MedicoService medicoService = new MedicoService(host, serverPort);
         new MedicosController(medicosView, medicoService);
 
+        Presentation.Views.farmaceuticos.FarmaceuticosView farmaceuticosView = new Presentation.Views.farmaceuticos.FarmaceuticosView(mainView);
+        FarmaceuticoService farmaceuticoService = new FarmaceuticoService(host, serverPort);
+        new FarmaceuticosController(farmaceuticosView, farmaceuticoService);
+
+
 
         Dictionary<String, JPanel> tabs = new Hashtable<>();
-        tabs.put("Medicos",medicosView.getContentPane());
+        tabs.put("Medicos", medicosView.getContentPane());
+        tabs.put("Farmaceuticos", farmaceuticosView.getContentPane());
 
         // Conectarse al puerto 7001 para escuchar transmisiones del servidor
         mainView.connectToMessages(host, messagesPort);
