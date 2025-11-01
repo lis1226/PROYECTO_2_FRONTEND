@@ -1,11 +1,5 @@
 package Presentation.Views.main;
 
-//import domain_layer.Administrador;
-//import domain_layer.Farmaceutico;
-//import domain_layer.Medico;
-//import domain_layer.Usuario;
-//import presentation_layer.controllers.MainController;
-//import service_layer.*;
 
 import Services.MessageService;
 

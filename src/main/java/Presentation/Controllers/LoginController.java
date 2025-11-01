@@ -10,11 +10,13 @@ package Presentation.Controllers;
 
 import Domain.Dtos.auth.UsuarioResponseDto;
 import Presentation.Observable;
+import Presentation.Views.medicamentos.MedicamentosView;
 import Presentation.Views.login.LoginView;
 import Presentation.Views.main.MainWindow;
 import Presentation.Views.medicos.MedicosView;
 import Services.AuthService;
 import Services.FarmaceuticoService;
+import Services.MedicamentoService;
 import Services.MedicoService;
 import Utilities.EventType;
 
@@ -90,11 +92,16 @@ public class LoginController extends Observable {
         FarmaceuticoService farmaceuticoService = new FarmaceuticoService(host, serverPort);
         new FarmaceuticosController(farmaceuticosView, farmaceuticoService);
 
+        MedicamentosView  medicamentosView = new MedicamentosView(mainView);
+        MedicamentoService medicamentoService = new MedicamentoService(host, serverPort);
+        new MedicamentosController(medicamentosView, medicamentoService);
+
 
 
         Dictionary<String, JPanel> tabs = new Hashtable<>();
         tabs.put("Medicos", medicosView.getContentPane());
         tabs.put("Farmaceuticos", farmaceuticosView.getContentPane());
+        tabs.put("Medicamentos", medicamentosView.getContentPane());
 
         // Conectarse al puerto 7001 para escuchar transmisiones del servidor
         mainView.connectToMessages(host, messagesPort);

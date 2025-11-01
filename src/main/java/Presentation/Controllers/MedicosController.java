@@ -23,6 +23,8 @@ public class MedicosController extends Observable {
         addListeners();
     }
 
+
+
     private void loadMedicosAsync() {
         SwingWorker<List<MedicoResponseDto>, Void> worker = new SwingWorker<>() {
             @Override
