@@ -2,6 +2,7 @@ package Services;
 
 import Domain.Dtos.RequestDto;
 import Domain.Dtos.ResponseDto;
+import Domain.Dtos.auth.ChangePasswordRequestDto;
 import Domain.Dtos.auth.LoginRequestDto;
 import Domain.Dtos.auth.UsuarioResponseDto;
 
@@ -36,6 +37,21 @@ public class AuthService extends BaseService{
         });
     }
 
-
-
+    public Future<Boolean> changePassword(String usernameOrEmail, String currentPassword, String newPassword) {
+        return executor.submit(() -> {
+            ChangePasswordRequestDto changePasswordDto = new ChangePasswordRequestDto(
+                    usernameOrEmail,
+                    currentPassword,
+                    newPassword
+            );
+            RequestDto request = new RequestDto(
+                    "Auth",
+                    "changePassword",
+                    gson.toJson(changePasswordDto),
+                    null
+            );
+            ResponseDto response = sendRequest(request);
+            return response.isSuccess();
+        });
+    }
 }

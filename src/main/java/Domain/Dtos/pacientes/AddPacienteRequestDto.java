@@ -9,7 +9,11 @@ public class AddPacienteRequestDto {
     private Date fechaNacimiento;
 
     public AddPacienteRequestDto(String id, String nombre, Date date) {
+        this.id = id;
+        this.nombre = nombre;
+        this.fechaNacimiento = date;
     }
+
 
 
 

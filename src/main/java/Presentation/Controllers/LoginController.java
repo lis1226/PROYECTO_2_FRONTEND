@@ -1,15 +1,11 @@
 package Presentation.Controllers;
 
-//import domain_layer.Administrador;
-//import domain_layer.Farmaceutico;
-//import domain_layer.Medico;
-//import domain_layer.Usuario;
-//import presentation_layer.views.ChangePasswordView;
-//import presentation_layer.views.MainWindow;
-//import service_layer.*;
+
 
 import Domain.Dtos.auth.UsuarioResponseDto;
 import Presentation.Observable;
+import Presentation.Views.RecetaView;
+import Presentation.Views.changePassword.ChangePasswordView;
 import Presentation.Views.medicamentos.MedicamentosView;
 import Presentation.Views.login.LoginView;
 import Presentation.Views.main.MainWindow;
@@ -72,6 +68,80 @@ public class LoginController extends Observable {
         worker.execute();
     }
 
+    private void handleOpenChangePassword() {
+        String currentUsername = loginView.getUsername();
+        ChangePasswordView changePasswordView = new ChangePasswordView(loginView);
+
+        // Precargar el usuario si ya hay algo escrito
+        if (!currentUsername.isEmpty()) {
+            changePasswordView.setUserId(currentUsername);
+        }
+
+        changePasswordView.setController(this);
+        changePasswordView.setVisible(true);
+    }
+
+    public void handleChangePassword(String usernameOrEmail, String currentPassword,
+                                     String newPassword, String confirmPassword,
+                                     ChangePasswordView view) {
+        // Validaciones
+        if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty()) {
+            view.mostrarError("Username or email is required");
+            return;
+        }
+
+        if (currentPassword == null || currentPassword.trim().isEmpty()) {
+            view.mostrarError("Current password is required");
+            return;
+        }
+
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            view.mostrarError("New password is required");
+            return;
+        }
+
+        if (confirmPassword == null || !confirmPassword.equals(newPassword)) {
+            view.mostrarError("Passwords do not match");
+            return;
+        }
+
+        if (newPassword.length() < 4) {
+            view.mostrarError("New password must be at least 4 characters long");
+            return;
+        }
+
+        if (currentPassword.equals(newPassword)) {
+            view.mostrarError("New password must be different from current password");
+            return;
+        }
+        //------------
+
+
+        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                return authService.changePassword(usernameOrEmail, currentPassword, newPassword).get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Boolean success = get();
+                    if (success != null && success) {
+                        view.cerrarVentanaExitoso();
+                    } else {
+                        view.mostrarError("Failed to change password. Please verify your current password.");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    view.mostrarError("Error: " + ex.getMessage());
+                }
+            }
+        };
+        worker.execute();
+    }
+
+
     private void openMainView() {
         MainWindow mainView = new MainWindow();
 
@@ -102,6 +172,14 @@ public class LoginController extends Observable {
         Services.DashboardService dashboardService = new Services.DashboardService(host, serverPort);
         new Presentation.Controllers.DashboardController(dashboardView, dashboardService);
 
+       // RecetaView recetaView = new RecetaView(mainView); // se pasa mainView
+       // RecetaService recetaService = new RecetaService(host, serverPort);
+       // new RecetaController(recetaView);
+
+        Presentation.Views.administradores.AdministradorView adminView = new Presentation.Views.administradores.AdministradorView();
+        Services.AdministradorService adminService = new Services.AdministradorService(host, serverPort);
+        new Presentation.Controllers.AdministradoresController(adminView, adminService);
+
 
         Dictionary<String, JPanel> tabs = new Hashtable<>();
         tabs.put("Medicos", medicosView.getContentPane());
@@ -109,226 +187,13 @@ public class LoginController extends Observable {
         tabs.put("Medicamentos", medicamentosView.getContentPane());
         tabs.put("Pacientes",pacientesView.getContentPane());
         tabs.put("Dashboard", dashboardView.getContentPane());
+        tabs.put("Administradores", adminView.getContentPane());
 
+       // tabs.put("Recetas", recetaView.getRecetaPanel());
         // Conectarse al puerto 7001 para escuchar transmisiones del servidor
         mainView.connectToMessages(host, messagesPort);
         mainView.AddTabs(tabs);
         mainView.setVisible(true);
     }
 
-//    private final UsuarioService usuarioService;
-//    private final LoginView view;
-//    private final MedicoService medicoService;
-//    private final FarmaceuticoService farmaceuticoService;
-//    private final AdministradorService administradorService;
-//    private final PacienteService pacienteService;
-//    private final MedicamentoService medicamentoService;
-//    private final RecetaService recetaService;
-//
-//    public LoginController(UsuarioService usuarioService, LoginView view, MedicoService medicoService, FarmaceuticoService farmaceuticoService, AdministradorService administradorService, PacienteService pacienteService, MedicamentoService medicamentoService, RecetaService recetaService) {
-//        this.usuarioService = usuarioService;
-//        this.view = view;
-//        this.medicoService = medicoService;
-//        this.farmaceuticoService = farmaceuticoService;
-//        this.administradorService = administradorService;
-//        this.pacienteService = pacienteService;
-//        this.medicamentoService = medicamentoService;
-//        this.recetaService = recetaService;
-//    }
-//
-//    // Login
-//    public void intentarLogin(String id, String clave) {
-//        if (id == null || id.trim().isEmpty()) {
-//            view.mostrarError("El ID es obligatorio.");
-//            return;
-//        }
-//        if (clave == null || clave.trim().isEmpty()) {
-//            view.mostrarError("La clave es obligatoria.");
-//            return;
-//        }
-//
-//        Usuario usuario = usuarioService.autenticar(id.trim(), clave);
-//        if (usuario != null) {
-//            view.cerrarVentana();
-//            abrirMainWindow(usuario);
-//        } else {
-//            view.mostrarError("ID o clave incorrectos.");
-//        }
-//    }
-//
-//    // Cambio de clave - Implementación completa
-//    // Este método funciona con los componentes que agregues en el UI Designer
-//    public void cambiarClave(String id, String claveActual, String nuevaClave, String confirmarNueva) {
-//        // Validaciones de entrada
-//        if (id == null || id.trim().isEmpty()) {
-//            view.mostrarError("El ID es obligatorio.");
-//            return;
-//        }
-//        if (claveActual == null || claveActual.trim().isEmpty()) {
-//            view.mostrarError("La clave actual es obligatoria.");
-//            return;
-//        }
-//        if (nuevaClave == null || nuevaClave.trim().isEmpty()) {
-//            view.mostrarError("La nueva clave es obligatoria.");
-//            return;
-//        }
-//        if (confirmarNueva == null || !confirmarNueva.equals(nuevaClave)) {
-//            view.mostrarError("Las nuevas claves no coinciden.");
-//            return;
-//        }
-//        if (nuevaClave.length() < 4) {
-//            view.mostrarError("La nueva clave debe tener al menos 4 caracteres.");
-//            return;
-//        }
-//
-//        // Validación adicional: la nueva clave no debe ser igual a la actual
-//        if (claveActual.equals(nuevaClave)) {
-//            view.mostrarError("La nueva clave debe ser diferente a la actual.");
-//            return;
-//        }
-//
-//        try {
-//            // Verificar que la clave actual sea correcta
-//            Usuario usuario = usuarioService.autenticar(id.trim(), claveActual);
-//            if (usuario == null) {
-//                view.mostrarError("La clave actual es incorrecta.");
-//                return;
-//            }
-//
-//            // Intentar cambiar la clave
-//            boolean cambioExitoso = usuarioService.cambiarClave(id.trim(), nuevaClave);
-//
-//            if (cambioExitoso) {
-//                view.mostrarMensaje("Contraseña cambiada exitosamente.");
-//            } else {
-//                view.mostrarError("No se pudo cambiar la contraseña. Inténtelo de nuevo.");
-//            }
-//
-//        } catch (Exception e) {
-//            view.mostrarError("Error al cambiar la contraseña: " + e.getMessage());
-//        }
-//    }
-//
-//    // Método para validar políticas de contraseña más estrictas (opcional)
-//    private boolean validarPoliticaPassword(String password) {
-//        if (password.length() < 6) {
-//            view.mostrarError("La contraseña debe tener al menos 6 caracteres.");
-//            return false;
-//        }
-//
-//        // Opcional: requerir al menos un número
-//        if (!password.matches(".*\\d.*")) {
-//            view.mostrarError("La contraseña debe contener al menos un número.");
-//            return false;
-//        }
-//
-//        // Opcional: requerir al menos una letra
-//        if (!password.matches(".*[a-zA-Z].*")) {
-//            view.mostrarError("La contraseña debe contener al menos una letra.");
-//            return false;
-//        }
-//
-//        return true;
-//    }
-//
-//    // Método para abrir  con rol del usuario
-//    private void abrirMainWindow(Usuario usuario) {
-//        SwingUtilities.invokeLater(() -> {
-//            try {
-//                // Inicializar MainWindow con servicios y usuario logueado
-//                MainWindow mainWindow = new MainWindow(usuario, medicoService, farmaceuticoService,
-//                        administradorService, pacienteService,
-//                        medicamentoService, recetaService);
-//                mainWindow.setVisible(true);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                view.mostrarError("Error al abrir la ventana principal: " + e.getMessage());
-//            }
-//        });
-//    }
-//
-//    // Método para abrir la ventana de cambio de contraseña
-//    public void abrirCambioPassword(String usuarioActual) {
-//        SwingUtilities.invokeLater(() -> {
-//            try {
-//                ChangePasswordView changePasswordView = new ChangePasswordView((JFrame) view);
-//                changePasswordView.bind(this);
-//
-//                // Si hay un usuario ingresado, precargarlo
-//                if (usuarioActual != null && !usuarioActual.trim().isEmpty()) {
-//                    changePasswordView.setUserId(usuarioActual.trim());
-//                }
-//
-//                changePasswordView.setVisible(true);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                view.mostrarError("Error al abrir la ventana de cambio de contraseña: " + e.getMessage());
-//            }
-//        });
-//    }
-//
-//    // Método específico para el cambio de contraseña desde la ventana separada
-//    public void cambiarClaveDesdeVentana(String id, String claveActual, String nuevaClave,
-//                                         String confirmarNueva, ChangePasswordView ventana) {
-//        // Validaciones de entrada
-//        if (id == null || id.trim().isEmpty()) {
-//            ventana.mostrarError("El ID es obligatorio.");
-//            return;
-//        }
-//        if (claveActual == null || claveActual.trim().isEmpty()) {
-//            ventana.mostrarError("La clave actual es obligatoria.");
-//            return;
-//        }
-//        if (nuevaClave == null || nuevaClave.trim().isEmpty()) {
-//            ventana.mostrarError("La nueva clave es obligatoria.");
-//            return;
-//        }
-//        if (confirmarNueva == null || !confirmarNueva.equals(nuevaClave)) {
-//            ventana.mostrarError("Las nuevas claves no coinciden.");
-//            return;
-//        }
-//        if (nuevaClave.length() < 4) {
-//            ventana.mostrarError("La nueva clave debe tener al menos 4 caracteres.");
-//            return;
-//        }
-//
-//        // Validación adicional: la nueva clave no debe ser igual a la actual
-//        if (claveActual.equals(nuevaClave)) {
-//            ventana.mostrarError("La nueva clave debe ser diferente a la actual.");
-//            return;
-//        }
-//
-//        try {
-//            // Verificar que la clave actual sea correcta
-//            Usuario usuario = usuarioService.autenticar(id.trim(), claveActual);
-//            if (usuario == null) {
-//                ventana.mostrarError("La clave actual es incorrecta.");
-//                return;
-//            }
-//
-//            // Intentar cambiar la clave
-//            boolean cambioExitoso = usuarioService.cambiarClave(id.trim(), nuevaClave);
-//
-//            if (cambioExitoso) {
-//                ventana.cerrarVentanaExitoso();
-//            } else {
-//                ventana.mostrarError("No se pudo cambiar la contraseña. Inténtelo de nuevo.");
-//            }
-//
-//        } catch (Exception e) {
-//            ventana.mostrarError("Error al cambiar la contraseña: " + e.getMessage());
-//        }
-//    }
-//
-//    private String determinarRol(Usuario usuario) {
-//        if (usuario instanceof Medico) return "Médico";
-//        if (usuario instanceof Farmaceutico) return "Farmacéutico";
-//        if (usuario instanceof Administrador) return "Administrador";
-//        return "Usuario desconocido";
-//    }
-//
-//    // Método adicional para cerrar la aplicación desde el controlador
-//    public void cerrarAplicacion() {
-//        System.exit(0);
-//    }
 }

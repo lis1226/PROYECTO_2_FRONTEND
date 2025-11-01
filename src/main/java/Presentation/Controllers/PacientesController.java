@@ -53,11 +53,7 @@ public class PacientesController extends Observable {
 
     private void addListeners() {
         pacientesView.getAgregarButton().addActionListener(e -> {
-            try {
-                handleAddPaciente();
-            } catch (ParseException ex) {
-                throw new RuntimeException(ex);
-            }
+            handleAddPaciente();
         });
         pacientesView.getActualizarButton().addActionListener(e -> {
             try {
@@ -75,39 +71,52 @@ public class PacientesController extends Observable {
     // ACTION HANDLERS
     // ---------------------------
 
-    private void handleAddPaciente() throws ParseException {
+    private void handleAddPaciente() {
         String id = pacientesView.getIdTextField().getText().trim();
         String nombre = pacientesView.getNombreTextField().getText().trim();
         String fechaNacimiento = pacientesView.getFechaNacimientotextField().getText().trim();
 
-        if (id.isEmpty() || nombre.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Debe ingresar un ID y un nombre.");
+        if (id.isEmpty() || nombre.isEmpty() || fechaNacimiento.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Debe ingresar ID, nombre y fecha de nacimiento (formato dd/MM/yyyy).");
             return;
         }
 
-        AddPacienteRequestDto dto = new AddPacienteRequestDto(id, nombre, parseFecha(fechaNacimiento));
+        try {
+            Date fecha = parseFecha(fechaNacimiento);
+            AddPacienteRequestDto dto = new AddPacienteRequestDto(id, nombre, fecha);
 
-        SwingWorker<PacienteResponseDto, Void> worker = new SwingWorker<>() {
-            @Override
-            protected PacienteResponseDto doInBackground() throws Exception {
-                return pacienteService.addPacienteAsync(dto, null).get();
-            }
+            System.out.println("[PacientesController] Creating paciente: " + id + ", " + nombre + ", " + fechaNacimiento);
 
-            @Override
-            protected void done() {
-                try {
-                    PacienteResponseDto paciente = get();
-                    if (paciente != null) {
-                        notifyObservers(EventType.CREATED, paciente);
-                        pacientesView.clearFields();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            SwingWorker<PacienteResponseDto, Void> worker = new SwingWorker<>() {
+                @Override
+                protected PacienteResponseDto doInBackground() throws Exception {
+                    return pacienteService.addPacienteAsync(dto, null).get();
                 }
-            }
-        };
-        worker.execute();
+
+                @Override
+                protected void done() {
+                    try {
+                        PacienteResponseDto paciente = get();
+                        if (paciente != null) {
+                            System.out.println("[PacientesController] Paciente created successfully");
+                            notifyObservers(EventType.CREATED, paciente);
+                            pacientesView.clearFields();
+                            JOptionPane.showMessageDialog(null, "Paciente agregado exitosamente");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Error al agregar paciente", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            };
+            worker.execute();
+        } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(null, "Formato de fecha inválido. Use dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+
     private Date parseFecha(String textoFecha) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         sdf.setLenient(false);

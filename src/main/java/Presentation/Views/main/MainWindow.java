@@ -81,39 +81,4 @@ public class MainWindow extends JFrame {
             messageService.close();
         }
     }
-//    private final Usuario usuario;
-//    private final Map<String, JPanel> tabs;
-//
-//    public MainWindow(Usuario usuario, MedicoService medicoService, FarmaceuticoService farmaceuticoService, AdministradorService administradorService, PacienteService pacienteService, MedicamentoService medicamentoService, RecetaService recetaService) {
-//        this.usuario = usuario;
-//        this.tabs = new HashMap<>();
-//
-//        // Configurar ventana
-//        setTitle("Sistema de Prescripción y Despacho de Recetas - " + determinarRol(usuario));
-//        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        setSize(1000, 600);
-//        setLocationRelativeTo(null);
-//        setResizable(true);
-//
-//        // Inicializar componentes
-//        contentPane = new JPanel(new BorderLayout());
-//        tabbedPane = new JTabbedPane();
-//        contentPane.add(tabbedPane, BorderLayout.CENTER);
-//        setContentPane(contentPane);
-//
-//        // Configurar tabs con MainController
-//        new MainController(this, usuario, medicoService, farmaceuticoService, administradorService, pacienteService, medicamentoService, recetaService);
-//    }
-//
-//    public void addTab(String nombre, JPanel panel) {
-//        tabs.put(nombre, panel);
-//        tabbedPane.addTab(nombre, panel);
-//    }
-//
-//    private String determinarRol(Usuario usuario) {
-//        if (usuario instanceof Medico) return "Médico";
-//        if (usuario instanceof Farmaceutico) return "Farmacéutico";
-//        if (usuario instanceof Administrador) return "Administrador";
-//        return "Usuario desconocido";
-//    }
 }

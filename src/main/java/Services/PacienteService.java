@@ -3,7 +3,13 @@ package Services;
 import Domain.Dtos.RequestDto;
 import Domain.Dtos.ResponseDto;
 import Domain.Dtos.pacientes.*;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,7 +20,24 @@ public class PacienteService extends BaseService {
     private final ExecutorService executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory());
 
     public PacienteService(String host, int port) {
-        super(host,port);
+        super(host, port);
+        // Configurar Gson con adaptador para Date
+        this.gson = new GsonBuilder()
+                .setDateFormat("dd/MM/yyyy")
+                .registerTypeAdapter(Date.class, (JsonSerializer<Date>) (date, type, context) -> {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    return new JsonPrimitive(sdf.format(date));
+                })
+                .registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, type, context) -> {
+                    try {
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                        sdf.setLenient(false);
+                        return sdf.parse(json.getAsString());
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error parsing date: " + e.getMessage());
+                    }
+                })
+                .create();
     }
 
     // -----------------------------
@@ -22,10 +45,16 @@ public class PacienteService extends BaseService {
     // -----------------------------
     public Future<PacienteResponseDto> addPacienteAsync(AddPacienteRequestDto paciente, Long usuarioId) {
         return executor.submit(() -> {
+            System.out.println("[PacienteService] Sending add request for: " + paciente.getId());
             RequestDto request = new RequestDto("Paciente", "add", gson.toJson(paciente),
                     usuarioId != null ? usuarioId.toString() : "");
+            System.out.println("[PacienteService] Request JSON: " + gson.toJson(request));
             ResponseDto response = sendRequest(request);
-            if (!response.isSuccess()) return null;
+            System.out.println("[PacienteService] Response: " + response.getMessage());
+            if (!response.isSuccess()) {
+                System.err.println("[PacienteService] Failed to add paciente: " + response.getMessage());
+                return null;
+            }
             return gson.fromJson(response.getData(), PacienteResponseDto.class);
         });
     }

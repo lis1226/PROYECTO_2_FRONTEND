@@ -17,7 +17,6 @@ public class PacientesView {
     private JButton limpiarButton;
     private JButton borrarButton;
     private JTextField fechaNacimientotextField;
-    private JTextField telefonotextField;
     private JTextField BuscarTextFlied;
     private JButton BuscarButton;
     private JButton reporteButton;
@@ -53,9 +52,6 @@ public class PacientesView {
     }
     public JTextField getFechaNacimientotextField() {
         return fechaNacimientotextField;
-    }
-    public JTextField getTelefonotextField() {
-        return telefonotextField;
     }
     public JTextField getBuscarTextFlied() {
         return BuscarTextFlied;
@@ -100,7 +96,6 @@ public class PacientesView {
         idTextField.setText("");
         nombreTextField.setText("");
         fechaNacimientotextField.setText("");
-        telefonotextField.setText("");
         idTextField.requestFocus();
     }
 
