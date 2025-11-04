@@ -4,7 +4,7 @@ package Presentation.Controllers;
 
 import Domain.Dtos.auth.UsuarioResponseDto;
 import Presentation.Observable;
-import Presentation.Views.RecetaView;
+import Presentation.Views.recetas.PrescribirView;
 import Presentation.Views.changePassword.ChangePasswordView;
 import Presentation.Views.medicamentos.MedicamentosView;
 import Presentation.Views.login.LoginView;
@@ -15,6 +15,7 @@ import Services.*;
 import Utilities.EventType;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -170,6 +171,30 @@ public class LoginController extends Observable {
         Services.DashboardService dashboardService = new Services.DashboardService(host, serverPort);
         new Presentation.Controllers.DashboardController(dashboardView, dashboardService);
 
+
+        RecetaService recetaService = new RecetaService(host, serverPort);
+        JButton prescribirButton = new JButton("Nueva Prescripción");
+        prescribirButton.addActionListener(e -> {
+            // TODO: Obtener el ID del médico actual del usuario logueado
+            // Por ahora usamos un ID fijo de ejemplo
+            String idMedicoActual = "M001"; // En producción esto vendría del login
+
+            PrescribirView prescribirView = new PrescribirView(idMedicoActual);
+            new PrescribirController(prescribirView, recetaService, pacienteService, medicamentoService);
+            prescribirView.setVisible(true);
+        });
+
+        JPanel prescripcionPanel = new JPanel(new BorderLayout(10, 10));
+        prescripcionPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.add(prescribirButton);
+        prescripcionPanel.add(topPanel, BorderLayout.NORTH);
+
+        JLabel infoLabel = new JLabel("<html><h2>Prescripción de Recetas</h2>" +
+                "<p>Desde aquí puede confeccionar recetas digitales para los pacientes.</p>" +
+                "<p>Haga clic en 'Nueva Prescripción' para comenzar.</p></html>");
+        prescripcionPanel.add(infoLabel, BorderLayout.CENTER);
+
         Presentation.Views.administradores.AdministradorView adminView = new Presentation.Views.administradores.AdministradorView();
         Services.AdministradorService adminService = new Services.AdministradorService(host, serverPort);
         new Presentation.Controllers.AdministradoresController(adminView, adminService);
@@ -188,16 +213,20 @@ public class LoginController extends Observable {
                 tabs.put("Farmaceuticos", farmaceuticosView.getContentPane());
                 tabs.put("Medicamentos", medicamentosView.getContentPane());
                 tabs.put("Pacientes", pacientesView.getContentPane());
+                tabs.put("Prescripción", prescripcionPanel);
+
                 break;
 
             case "MEDICO":
                 tabs.put("Dashboard", dashboardView.getContentPane());
                 tabs.put("Pacientes", pacientesView.getContentPane());
+                tabs.put("Prescripción", prescripcionPanel);
                 break;
 
             case "FARMACEUTICO":
                 tabs.put("Dashboard", dashboardView.getContentPane());
                 tabs.put("Medicamentos", medicamentosView.getContentPane());
+                tabs.put("Prescripción", prescripcionPanel);
                 break;
 
             case "PACIENTE":

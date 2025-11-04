@@ -5,7 +5,7 @@ import Domain.Dtos.receta.*;
 import Domain.Dtos.RequestDto;
 import Domain.Dtos.ResponseDto;
 import Presentation.Views.RecetaView;
-import Presentation.Models.RecetaTableModel;
+import Presentation.Models.DetalleRecetaTableModel;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.util.*;
 
 public class RecetaController {
     private final RecetaView view;
-    private final RecetaTableModel tableModel;
+    private final DetalleRecetaTableModel tableModel;
     private final SocketClient socket;
     private final String idMedicoActual;
 
@@ -25,7 +25,7 @@ public class RecetaController {
         this.view = view;
         this.socket = socket;
         this.idMedicoActual = idMedicoActual;
-        this.tableModel = new RecetaTableModel();
+        this.tableModel = new DetalleRecetaTableModel();
 
         inicializarVista();
         configurarEventos();
