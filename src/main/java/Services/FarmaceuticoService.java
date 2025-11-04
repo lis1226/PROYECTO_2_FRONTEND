@@ -53,4 +53,20 @@ public class FarmaceuticoService extends BaseService {
             return response.isSuccess();
         });
     }
+
+    // Método para búsqueda
+    public Future<List<FarmaceuticoResponseDto>> buscarFarmaceuticosAsync(String criterio, Long usuarioId) {
+        return executor.submit(() -> {
+            List<FarmaceuticoResponseDto> todos = listFarmaceuticoAsync(usuarioId).get();
+            if (todos == null || criterio == null || criterio.trim().isEmpty()) {
+                return todos;
+            }
+
+            String criterioBusqueda = criterio.toLowerCase().trim();
+            return todos.stream()
+                    .filter(f -> f.getId().toLowerCase().contains(criterioBusqueda) ||
+                            f.getNombre().toLowerCase().contains(criterioBusqueda))
+                    .toList();
+        });
+    }
 }

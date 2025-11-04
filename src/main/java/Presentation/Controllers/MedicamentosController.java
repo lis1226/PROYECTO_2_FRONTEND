@@ -136,10 +136,38 @@ public class MedicamentosController extends Observable {
 
     private void handleBuscar() {
         String criterio = view.getBuscarTextFlied().getText().trim();
-        // Puedes implementar búsqueda local en tableModel o pedir lista filtrada al servidor.
-        // Aquí haré una búsqueda simple local:
-        List<MedicamentoResponseDto> all = view.getTableModel().getMedicamentos();
-        // filtrado simple (implementación opcional según prefieras)
+
+        if (criterio.isEmpty()) {
+            loadMedicamentosAsync();
+            return;
+        }
+
+        SwingWorker<List<MedicamentoResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<MedicamentoResponseDto> doInBackground() throws Exception {
+                return service.buscarMedicamentosAsync(criterio).get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<MedicamentoResponseDto> resultados = get();
+                    if (resultados != null) {
+                        view.getTableModel().setMedicamentos(resultados);
+                        if (resultados.isEmpty()) {
+                            JOptionPane.showMessageDialog(view.getContentPane(),
+                                    "No se encontraron medicamentos con ese criterio",
+                                    "Búsqueda",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[MedicamentosController] Error searching: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void handleRowSelection(ListSelectionEvent e) {

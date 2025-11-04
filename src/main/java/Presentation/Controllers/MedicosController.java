@@ -51,6 +51,7 @@ public class MedicosController extends Observable {
         medicosView.getActualizarButton().addActionListener(e -> handleUpdateMedico());
         medicosView.getBorrarButton().addActionListener(e -> handleDeleteMedico());
         medicosView.getLimpiarButton().addActionListener(e -> handleClearFields());
+        medicosView.getBuscarButton().addActionListener(e -> handleBuscarMedico());
         medicosView.getMedicosTable().getSelectionModel().addListSelectionListener(this::handleRowSelection);
     }
 
@@ -176,5 +177,43 @@ public class MedicosController extends Observable {
                 medicosView.populateFields(med);
             }
         }
+    }
+
+
+    private void handleBuscarMedico() {
+        String criterio = medicosView.getBuscarTextFlied().getText().trim();
+
+        if (criterio.isEmpty()) {
+            // Si está vacío, recargar todos
+            loadMedicosAsync();
+            return;
+        }
+
+        SwingWorker<List<MedicoResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<MedicoResponseDto> doInBackground() throws Exception {
+                return medicoService.buscarMedicosAsync(criterio, 1L).get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<MedicoResponseDto> resultados = get();
+                    if (resultados != null) {
+                        medicosView.getTableModel().setMedicos(resultados);
+                        if (resultados.isEmpty()) {
+                            JOptionPane.showMessageDialog(medicosView.getContentPane(),
+                                    "No se encontraron médicos con ese criterio",
+                                    "Búsqueda",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[MedicosController] Error searching: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 }

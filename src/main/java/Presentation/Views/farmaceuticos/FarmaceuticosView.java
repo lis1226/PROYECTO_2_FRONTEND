@@ -40,6 +40,9 @@ public class FarmaceuticosView {
     public JButton getAgregarButton() { return agregarButton; }
     public JTable getTable() { return farmaceuticosTable; }
     public FarmaceuticosTableModel getTableModel() { return tableModel; }
+    public JButton getBuscarButton() { return BuscarButton; }
+    public JTextField getBuscarTextFlied() { return BuscarTextFlied; }
+
 
     public void clearFields() {
         idTextField.setText("");

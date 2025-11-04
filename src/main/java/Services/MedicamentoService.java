@@ -53,4 +53,21 @@ public class MedicamentoService extends BaseService {
             return resp != null && resp.isSuccess();
         });
     }
+
+
+    public Future<List<MedicamentoResponseDto>> buscarMedicamentosAsync(String criterio) {
+        return executor.submit(() -> {
+            List<MedicamentoResponseDto> todos = listMedicamentoAsync().get();
+            if (todos == null || criterio == null || criterio.trim().isEmpty()) {
+                return todos;
+            }
+
+            String criterioBusqueda = criterio.toLowerCase().trim();
+            return todos.stream()
+                    .filter(m -> m.getCodigo().toLowerCase().contains(criterioBusqueda) ||
+                            m.getDescripcion().toLowerCase().contains(criterioBusqueda) ||
+                            (m.getPresentacion() != null && m.getPresentacion().toLowerCase().contains(criterioBusqueda)))
+                    .toList();
+        });
+    }
 }

@@ -66,4 +66,21 @@ public class MedicoService extends BaseService {
             return response.isSuccess();
         });
     }
+
+
+    public Future<List<MedicoResponseDto>> buscarMedicosAsync(String criterio, Long usuarioId) {
+        return executor.submit(() -> {
+            List<MedicoResponseDto> todos = listMedicoAsync(usuarioId).get();
+            if (todos == null || criterio == null || criterio.trim().isEmpty()) {
+                return todos;
+            }
+
+            String criterioBusqueda = criterio.toLowerCase().trim();
+            return todos.stream()
+                    .filter(m -> m.getId().toLowerCase().contains(criterioBusqueda) ||
+                            m.getNombre().toLowerCase().contains(criterioBusqueda) ||
+                            (m.getEspecialidad() != null && m.getEspecialidad().toLowerCase().contains(criterioBusqueda)))
+                    .toList();
+        });
+    }
 }

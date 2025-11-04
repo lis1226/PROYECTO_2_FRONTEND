@@ -49,6 +49,7 @@ public class FarmaceuticosController extends Observable {
         view.getActualizarButton().addActionListener(e -> handleUpdate());
         view.getBorrarButton().addActionListener(e -> handleDelete());
         view.getLimpiarButton().addActionListener(e -> handleClear());
+        view.getBuscarButton().addActionListener(e -> handleBuscarFarmaceutico());
         view.getTable().getSelectionModel().addListSelectionListener(this::handleRowSelect);
     }
 
@@ -152,5 +153,41 @@ public class FarmaceuticosController extends Observable {
                 view.populateFields(f);
             }
         }
+    }
+
+    private void handleBuscarFarmaceutico() {
+        String criterio = view.getBuscarTextFlied().getText().trim();
+
+        if (criterio.isEmpty()) {
+            loadFarmaceuticosAsync();
+            return;
+        }
+
+        SwingWorker<List<FarmaceuticoResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<FarmaceuticoResponseDto> doInBackground() throws Exception {
+                return service.buscarFarmaceuticosAsync(criterio, 1L).get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<FarmaceuticoResponseDto> resultados = get();
+                    if (resultados != null) {
+                        view.getTableModel().setFarmaceuticos(resultados);
+                        if (resultados.isEmpty()) {
+                            JOptionPane.showMessageDialog(view.getContentPane(),
+                                    "No se encontraron farmacéuticos con ese criterio",
+                                    "Búsqueda",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[FarmaceuticosController] Error searching: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 }

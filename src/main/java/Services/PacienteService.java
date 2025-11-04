@@ -96,4 +96,20 @@ public class PacienteService extends BaseService {
             return response.isSuccess();
         });
     }
+
+    // Método para búsqueda
+    public Future<List<PacienteResponseDto>> buscarPacientesAsync(String criterio, Long usuarioId) {
+        return executor.submit(() -> {
+            List<PacienteResponseDto> todos = listPacienteAsync(usuarioId).get();
+            if (todos == null || criterio == null || criterio.trim().isEmpty()) {
+                return todos;
+            }
+
+            String criterioBusqueda = criterio.toLowerCase().trim();
+            return todos.stream()
+                    .filter(p -> p.getId().toLowerCase().contains(criterioBusqueda) ||
+                            p.getNombre().toLowerCase().contains(criterioBusqueda))
+                    .toList();
+        });
+    }
 }

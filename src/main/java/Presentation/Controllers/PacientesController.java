@@ -64,6 +64,7 @@ public class PacientesController extends Observable {
         });
         pacientesView.getBorrarButton().addActionListener(e -> handleDeletePaciente());
         pacientesView.getLimpiarButton().addActionListener(e -> handleClearFields());
+        pacientesView.getBuscarButton().addActionListener(e -> handleBuscarPaciente());
         pacientesView.getPacientesTable().getSelectionModel().addListSelectionListener(this::handleRowSelection);
     }
 
@@ -207,6 +208,41 @@ public class PacientesController extends Observable {
                 pacientesView.populateFields(med);
             }
         }
+    }
+    private void handleBuscarPaciente() {
+        String criterio = pacientesView.getBuscarTextFlied().getText().trim();
+
+        if (criterio.isEmpty()) {
+            loadPacientesAsync();
+            return;
+        }
+
+        SwingWorker<List<PacienteResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<PacienteResponseDto> doInBackground() throws Exception {
+                return pacienteService.buscarPacientesAsync(criterio, 1L).get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<PacienteResponseDto> resultados = get();
+                    if (resultados != null) {
+                        pacientesView.getTableModel().setPacientes(resultados);
+                        if (resultados.isEmpty()) {
+                            JOptionPane.showMessageDialog(pacientesView.getContentPane(),
+                                    "No se encontraron pacientes con ese criterio",
+                                    "Búsqueda",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("[PacientesController] Error searching: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
 }
