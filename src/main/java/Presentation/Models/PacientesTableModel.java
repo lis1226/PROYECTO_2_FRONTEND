@@ -48,22 +48,22 @@ public class PacientesTableModel extends AbstractTableModel implements IObserver
 
         switch (eventType) {
             case CREATED -> {
-                PacienteResponseDto newCar = (PacienteResponseDto) data;
-                pacientes.add(newCar);
+                PacienteResponseDto newPaciente = (PacienteResponseDto) data;
+                pacientes.add(newPaciente);
                 fireTableRowsInserted(pacientes.size() - 1, pacientes.size() - 1);
             }
             case UPDATED -> {
-                PacienteResponseDto updatedCar = (PacienteResponseDto) data;
+                PacienteResponseDto updatedPaciente = (PacienteResponseDto) data;
                 for (int i = 0; i < pacientes.size(); i++) {
-                    if (pacientes.get(i).getId().equals(updatedCar.getId())) {
-                        pacientes.set(i, updatedCar);
+                    if (pacientes.get(i).getId().equals(updatedPaciente.getId())) {
+                        pacientes.set(i, updatedPaciente);
                         fireTableRowsUpdated(i, i);
                         break;
                     }
                 }
             }
             case DELETED -> {
-                Long deletedId = (Long) data;
+                String deletedId = (String) data; // ✅ CORREGIDO: String en vez de Long
                 for (int i = 0; i < pacientes.size(); i++) {
                     if (pacientes.get(i).getId().equals(deletedId)) {
                         pacientes.remove(i);
@@ -74,7 +74,6 @@ public class PacientesTableModel extends AbstractTableModel implements IObserver
             }
         }
     }
-
     // -------------------------
     // Utility methods
     // -------------------------

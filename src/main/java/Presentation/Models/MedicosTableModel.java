@@ -67,22 +67,22 @@ public class MedicosTableModel extends AbstractTableModel implements IObserver {
 
         switch (eventType) {
             case CREATED -> {
-                MedicoResponseDto newCar = (MedicoResponseDto) data;
-                medicos.add(newCar);
+                MedicoResponseDto newMedico = (MedicoResponseDto) data;
+                medicos.add(newMedico);
                 fireTableRowsInserted(medicos.size() - 1, medicos.size() - 1);
             }
             case UPDATED -> {
-                MedicoResponseDto updatedCar = (MedicoResponseDto) data;
+                MedicoResponseDto updatedMedico = (MedicoResponseDto) data;
                 for (int i = 0; i < medicos.size(); i++) {
-                    if (medicos.get(i).getId().equals(updatedCar.getId())) {
-                        medicos.set(i, updatedCar);
+                    if (medicos.get(i).getId().equals(updatedMedico.getId())) {
+                        medicos.set(i, updatedMedico);
                         fireTableRowsUpdated(i, i);
                         break;
                     }
                 }
             }
             case DELETED -> {
-                Long deletedId = (Long) data;
+                String deletedId = (String) data; // ✅ CORREGIDO: String en vez de Long
                 for (int i = 0; i < medicos.size(); i++) {
                     if (medicos.get(i).getId().equals(deletedId)) {
                         medicos.remove(i);

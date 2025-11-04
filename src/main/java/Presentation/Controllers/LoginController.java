@@ -28,6 +28,8 @@ public class LoginController extends Observable {
         this.authService = authService;
 
         this.loginView.addLoginListener(e -> handleLogin());
+        this.loginView.addChangePasswordListener(e -> handleOpenChangePassword());
+
     }
 
     private void handleLogin() {
@@ -54,7 +56,7 @@ public class LoginController extends Observable {
                     UsuarioResponseDto user = get();
                     if (user != null) {
                         loginView.setVisible(false);
-                        openMainView();
+                        openMainView(user);
                         notifyObservers(EventType.UPDATED, user);
                     } else {
                         JOptionPane.showMessageDialog(loginView, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
@@ -141,17 +143,13 @@ public class LoginController extends Observable {
         worker.execute();
     }
 
-
-    private void openMainView() {
+    private void openMainView(UsuarioResponseDto user) {
         MainWindow mainView = new MainWindow();
-
         String host = "localhost";
         int serverPort = 7000;
         int messagesPort = 7001;
 
-
-        // Inicializar las vistas que van dentro del main view.
-
+        // Crear vistas y controladores como ya hacías
         MedicosView medicosView = new MedicosView(mainView);
         MedicoService medicoService = new MedicoService(host, serverPort);
         new MedicosController(medicosView, medicoService);
@@ -160,7 +158,7 @@ public class LoginController extends Observable {
         FarmaceuticoService farmaceuticoService = new FarmaceuticoService(host, serverPort);
         new FarmaceuticosController(farmaceuticosView, farmaceuticoService);
 
-        MedicamentosView  medicamentosView = new MedicamentosView(mainView);
+        MedicamentosView medicamentosView = new MedicamentosView(mainView);
         MedicamentoService medicamentoService = new MedicamentoService(host, serverPort);
         new MedicamentosController(medicamentosView, medicamentoService);
 
@@ -172,28 +170,58 @@ public class LoginController extends Observable {
         Services.DashboardService dashboardService = new Services.DashboardService(host, serverPort);
         new Presentation.Controllers.DashboardController(dashboardView, dashboardService);
 
-       // RecetaView recetaView = new RecetaView(mainView); // se pasa mainView
-       // RecetaService recetaService = new RecetaService(host, serverPort);
-       // new RecetaController(recetaView);
-
         Presentation.Views.administradores.AdministradorView adminView = new Presentation.Views.administradores.AdministradorView();
         Services.AdministradorService adminService = new Services.AdministradorService(host, serverPort);
         new Presentation.Controllers.AdministradoresController(adminView, adminService);
 
+        // --- NUEVO: Mostrar tabs según el rol del usuario ---
+        java.util.Dictionary<String, javax.swing.JPanel> tabs = new java.util.Hashtable<>();
+        String rol = user.getRol() != null ? user.getRol().trim().toUpperCase() : "";
 
-        Dictionary<String, JPanel> tabs = new Hashtable<>();
-        tabs.put("Medicos", medicosView.getContentPane());
-        tabs.put("Farmaceuticos", farmaceuticosView.getContentPane());
-        tabs.put("Medicamentos", medicamentosView.getContentPane());
-        tabs.put("Pacientes",pacientesView.getContentPane());
-        tabs.put("Dashboard", dashboardView.getContentPane());
-        tabs.put("Administradores", adminView.getContentPane());
+        System.out.println("[LoginController] Rol detectado: " + rol);
 
-       // tabs.put("Recetas", recetaView.getRecetaPanel());
-        // Conectarse al puerto 7001 para escuchar transmisiones del servidor
-        mainView.connectToMessages(host, messagesPort);
+        switch (rol) {
+            case "ADMIN":
+                tabs.put("Dashboard", dashboardView.getContentPane());
+                tabs.put("Administradores", adminView.getContentPane());
+                tabs.put("Medicos", medicosView.getContentPane());
+                tabs.put("Farmaceuticos", farmaceuticosView.getContentPane());
+                tabs.put("Medicamentos", medicamentosView.getContentPane());
+                tabs.put("Pacientes", pacientesView.getContentPane());
+                break;
+
+            case "MEDICO":
+                tabs.put("Dashboard", dashboardView.getContentPane());
+                tabs.put("Pacientes", pacientesView.getContentPane());
+                break;
+
+            case "FARMACEUTICO":
+                tabs.put("Dashboard", dashboardView.getContentPane());
+                tabs.put("Medicamentos", medicamentosView.getContentPane());
+                break;
+
+            case "PACIENTE":
+                tabs.put("Dashboard", dashboardView.getContentPane());
+                break;
+
+            default:
+                tabs.put("Dashboard", dashboardView.getContentPane());
+                JOptionPane.showMessageDialog(null, "Rol desconocido: " + rol);
+                break;
+        }
+
+        // Conexión a mensajes (si aplica)
+        try {
+            mainView.connectToMessages(host, messagesPort);
+        } catch (Exception e) {
+            System.err.println("No se pudo conectar al servicio de mensajes: " + e.getMessage());
+        }
+
+        // Añadir las pestañas según el rol
         mainView.AddTabs(tabs);
         mainView.setVisible(true);
     }
+
+
 
 }

@@ -23,11 +23,6 @@ public class FarmaceuticosController extends Observable {
         addListeners();
     }
 
-    public FarmaceuticosController(Presentation.Views.farmaceuticos.FarmaceuticosView farmaceuticosView, FarmaceuticoService farmaceuticoService, FarmaceuticosView view, FarmaceuticoService service) {
-        super();
-        this.view = view;
-        this.service = service;
-    }
 
     private void loadFarmaceuticosAsync() {
         SwingWorker<List<Domain.Dtos.Farmaceuticos.FarmaceuticoResponseDto>, Void> worker = new SwingWorker<>() {
